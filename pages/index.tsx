@@ -2,12 +2,14 @@ import type { NextPage } from "next";
 import Header from "../components/Header";
 import Guess from "../components/Card/Guess";
 
-const Home: NextPage = () => {
+const Home: NextPage = (windowSize: any) => {
+
+  const size = windowSize.size
+
   return (
     <>
-      <Header />
       <div>
-        <Guess />
+        <Guess size={size} />
       </div>
     </>
   );
