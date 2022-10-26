@@ -68,7 +68,7 @@ export default function Simple() {
   }, []);
 
   const handlerAnswer = (card: ICard, values: any, totalCards: number) => {
-    if (card?.translate_word?.toLowerCase() === values.name.toLowerCase()) {
+    if (card?.translate_word?.toLowerCase() === values.name.toLowerCase().trim()) {
       setState("success");
       setNumberCard(numberCard + 1);
       setStatistic({
