@@ -69,7 +69,7 @@ function StatsCardMobile(props: StatsCardProps) {
       rounded={"lg"}
     >
       <Flex w="100%">
-        <Box w="60%" pt={4} px={2}>
+        <Box w="55%" pt={4}>
           <Text align={"center"}>{stat}</Text>
         </Box>
         <Spacer />
@@ -86,7 +86,7 @@ export default function BasicStatistics(props: IStatistic) {
 
   return (
     <>
-      {size.width > 375 ? (
+      {size.width > 475 ? (
         <Box maxW="7xl" mx={"auto"} pt={5} px={{ base: 2, sm: 12, md: 17 }}>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={{ base: 5, lg: 8 }}>
             <StatsCard

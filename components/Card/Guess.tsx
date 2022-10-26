@@ -48,35 +48,44 @@ export default function Simple() {
         },
       });
 
-      res?.words.map((item: ICard) => {
-        cardGuess = {
-          id: item?.id,
-          image_reference: item?.image_reference,
-          original_word: item?.original_word,
-          region_language: item?.region_language,
-          translate_word: item?.translate_word,
-        };
-        setStatistic({
-          hits: 0,
-          misses: 0,
-          remaining: `1 / ${res?.words.length}`,
+      res?.words
+        .sort((a: any, b: any) => (a.id > b.id ? 1 : -1))
+        .map((item: ICard) => {
+          cardGuess = {
+            id: item?.id,
+            image_reference: item?.image_reference,
+            original_word: item?.original_word,
+            region_language: item?.region_language,
+            translate_word: item?.translate_word,
+          };
+          setStatistic({
+            hits: 0,
+            misses: 0,
+            remaining: `1 / ${res?.words.length}`,
+          });
+          setCards((arr) => [...arr, cardGuess]);
         });
-        setCards((arr) => [...arr, cardGuess]);
-      });
     };
     getAllWords();
   }, []);
 
   const handlerAnswer = (card: ICard, values: any, totalCards: number) => {
-    if (card?.translate_word?.toLowerCase() === values.name.toLowerCase().trim()) {
+    let words = card?.translate_word?.split(",");
+
+    if (words?.includes(values.name.toLowerCase().trim())) {
       setState("success");
       setNumberCard(numberCard + 1);
-      setStatistic({
-        ...statistic,
-        hits: (statistic?.hits || 0) + 1,
-        remaining: `${numberCard + 2} / ${totalCards}`,
-      });
+
+      if (!error) {
+        setStatistic({
+          ...statistic,
+          hits: (statistic?.hits || 0) + 1,
+          remaining: `${numberCard + 2} / ${totalCards}`,
+        });
+      }
+      setError(false);
     } else {
+      setError(true);
       setStatistic({
         ...statistic,
         misses: (statistic?.misses || 0) + 1,
@@ -138,12 +147,12 @@ export default function Simple() {
     <>
       <Stack
         spacing={{ base: 8, md: 14 }}
-        py={{ base: size.width > 375 ? 20 : 12, md: 36 }}
+        py={{ base: size.width > 475 ? 20 : 12, md: 36 }}
       >
         <Statistic {...statistic} />
         <Flex align={"center"} justify={"center"}>
           <Container
-            maxW={size.width > 375 ? "xl" : "xs"}
+            maxW={size.width > 475 ? "xl" : "xs"}
             bg={useColorModeValue("white", "whiteAlpha.100")}
             boxShadow={"xl"}
             rounded={"lg"}
