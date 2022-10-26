@@ -9,29 +9,36 @@ import {
   Text,
   Container,
   Flex,
-  FormLabel,
   FormErrorMessage,
   Box,
   Image,
 } from "@chakra-ui/react";
-import { CheckIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import ICard from "./Interface";
+import IStatistic from "../Statistic/Interface";
 import { Field, Form, Formik } from "formik";
+import Statistic from "../Statistic";
+import useWindowSize from "../../utils/windowSize";
 
 const api_get_all_cards = process.env.NEXT_PUBLIC_API_GET_ALL_CARDS;
 const authorization_value = process.env.NEXT_PUBLIC_API_AUTHORIZATION_VALUE;
 
 let cardGuess: ICard = {};
 
-export default function Simple(windowSize: any) {
+export default function Simple() {
   const [numberCard, setNumberCard] = useState(0);
   const [cards, setCards] = useState<ICard[]>([]);
-  const [answer, setAnswer] = useState("");
+  const [statistic, setStatistic] = useState<IStatistic>({
+    size: { width: 0, height: 0 },
+    hits: 0,
+    misses: 0,
+    remaining: "",
+  });
   const [state, setState] = useState<"initial" | "success" | "error">(
     "initial"
   );
   const [error, setError] = useState(false);
+  const size = useWindowSize();
 
   useEffect(() => {
     const getAllWords = async () => {
@@ -49,18 +56,32 @@ export default function Simple(windowSize: any) {
           region_language: item?.region_language,
           translate_word: item?.translate_word,
         };
-
+        setStatistic({
+          hits: 0,
+          misses: 0,
+          remaining: `1 / ${res?.words.length}`,
+        });
         setCards((arr) => [...arr, cardGuess]);
       });
     };
     getAllWords();
   }, []);
 
-  const handlerAnswer = (card: ICard, values: any) => {
+  const handlerAnswer = (card: ICard, values: any, totalCards: number) => {
     if (card?.translate_word?.toLowerCase() === values.name.toLowerCase()) {
       setState("success");
       setNumberCard(numberCard + 1);
+      setStatistic({
+        ...statistic,
+        hits: (statistic?.hits || 0) + 1,
+        remaining: `${numberCard + 2} / ${totalCards}`,
+      });
     } else {
+      setStatistic({
+        ...statistic,
+        misses: (statistic?.misses || 0) + 1,
+        remaining: `${numberCard + 1} / ${totalCards}`,
+      });
       setState("error");
     }
   };
@@ -94,78 +115,82 @@ export default function Simple(windowSize: any) {
       );
     }
   };
+
   return (
-    <Flex
-      minH={"100vh"}
-      align={"center"}
-      justify={"center"}
-      bg={useColorModeValue("gray.50", "gray.800")}
-    >
-      <Container
-        maxW={windowSize.size.width > 375 ? "xl" : "xs"}
-        bg={useColorModeValue("white", "whiteAlpha.100")}
-        boxShadow={"xl"}
-        rounded={"lg"}
-        p={6}
+    <>
+      <Stack
+        spacing={{ base: 8, md: 14 }}
+        py={{ base: size.width > 375 ? 20 : 12, md: 36 }}
       >
-        <Flex align={"center"} justify={"center"} mb={5}>
-          <Box>
-            <Image
-              maxH={230}
-              maxW={282}
-              src={cards[numberCard]?.image_reference}
-              alt={cards[numberCard]?.original_word}
-            />
-          </Box>
+        <Statistic {...statistic} />
+        <Flex align={"center"} justify={"center"}>
+          <Container
+            maxW={size.width > 375 ? "xl" : "xs"}
+            bg={useColorModeValue("white", "whiteAlpha.100")}
+            boxShadow={"xl"}
+            rounded={"lg"}
+            p={6}
+          >
+            <Flex align={"center"} justify={"center"} mb={5}>
+              <Box>
+                <Image
+                  maxH={230}
+                  maxW={282}
+                  src={cards[numberCard]?.image_reference}
+                  alt={cards[numberCard]?.original_word}
+                />
+              </Box>
+            </Flex>
+
+            <Heading
+              as={"h2"}
+              fontSize={{ base: "xl", sm: "2xl" }}
+              textAlign={"center"}
+              mb={5}
+            >
+              {cards[numberCard]?.original_word}
+            </Heading>
+
+            <Formik
+              initialValues={{ name: "" }}
+              onSubmit={(values, actions) => {
+                handlerAnswer(cards[numberCard], values, cards.length);
+                setTimeout(() => {
+                  setState("initial");
+                  actions.setSubmitting(false);
+                  actions.resetForm({ values: { name: "" } });
+                }, 2000);
+              }}
+            >
+              {(props) => (
+                <Form>
+                  <Field name="name" validate={validateName}>
+                    {({ field, form }: any) => (
+                      <FormControl
+                        isInvalid={form.errors.name && form.touched.name}
+                      >
+                        <Input {...field} placeholder={"Your answer"} />
+                        <FormErrorMessage>{form.errors.name}</FormErrorMessage>
+                      </FormControl>
+                    )}
+                  </Field>
+                  <Flex align={"center"} justify={"center"}>
+                    <Button
+                      mt={4}
+                      colorScheme="teal"
+                      isLoading={props.isSubmitting}
+                      type="submit"
+                    >
+                      Send
+                    </Button>
+                  </Flex>
+                </Form>
+              )}
+            </Formik>
+            {feedback()}
+          </Container>
         </Flex>
-
-        <Heading
-          as={"h2"}
-          fontSize={{ base: "xl", sm: "2xl" }}
-          textAlign={"center"}
-          mb={5}
-        >
-          {cards[numberCard]?.original_word}
-        </Heading>
-
-        <Formik
-          initialValues={{ name: "" }}
-          onSubmit={(values, actions) => {
-            handlerAnswer(cards[numberCard], values);
-            setTimeout(() => {
-              setState("initial");
-              actions.setSubmitting(false);
-              actions.resetForm({ values: { name: "" } });
-            }, 2000);
-          }}
-        >
-          {(props) => (
-            <Form>
-              <Field name="name" validate={validateName}>
-                {({ field, form }: any) => (
-                  <FormControl
-                    isInvalid={form.errors.name && form.touched.name}
-                  >
-                    <Input {...field} placeholder={"Your answer"} />
-                    <FormErrorMessage>{form.errors.name}</FormErrorMessage>
-                  </FormControl>
-                )}
-              </Field>
-              <Flex align={"center"} justify={"center"}>
-                <Button
-                  mt={4}
-                  colorScheme="teal"
-                  isLoading={props.isSubmitting}
-                  type="submit"
-                >
-                  Send
-                </Button>
-              </Flex>
-            </Form>
-          )}
-        </Formik>
-        {feedback()}
-      </Container>
-    </Flex>
+      </Stack>
+    </>
   );
 }
