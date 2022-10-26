@@ -8,7 +8,7 @@ const Home: NextPage = (windowSize: any) => {
   return (
     <>
       <div>
-        <Guess size={size} />
+        <Guess />
       </div>
     </>
   );
