@@ -95,24 +95,42 @@ export default function Simple() {
   const feedback = () => {
     if (state == "success") {
       return (
-        <Text
-          mt={2}
-          textAlign={"center"}
-          color={error ? "red.500" : "gray.500"}
-        >
+        <Text mt={2} textAlign={"center"} color={"green.500"}>
           Very good! 😉
         </Text>
       );
     } else if (state == "error") {
       return (
-        <Text
-          mt={2}
-          textAlign={"center"}
-          color={error ? "red.500" : "gray.500"}
-        >
+        <Text mt={2} textAlign={"center"} color={"red.500"}>
           Oops! good luck the next time. 😥
         </Text>
       );
+    }
+  };
+
+  const inputWithFeedback = (field: any) => {
+    switch (state) {
+      case "error":
+        return (
+          <Input
+            {...field}
+            placeholder={"Your answer"}
+            isInvalid
+            focusBorderColor="red.500"
+          />
+        );
+      case "success":
+        return (
+          <Input
+            {...field}
+            placeholder={"Your answer"}
+            focusBorderColor="lime"
+            errorBorderColor="lime"
+          />
+        );
+
+      default:
+        return <Input {...field} placeholder={"Your answer"} />;
     }
   };
 
@@ -169,7 +187,8 @@ export default function Simple() {
                       <FormControl
                         isInvalid={form.errors.name && form.touched.name}
                       >
-                        <Input {...field} placeholder={"Your answer"} />
+                        {/* <Input {...field} placeholder={"Your answer"} /> */}
+                        {inputWithFeedback(field)}
                         <FormErrorMessage>{form.errors.name}</FormErrorMessage>
                       </FormControl>
                     )}
