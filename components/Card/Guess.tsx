@@ -77,6 +77,7 @@ export default function Simple() {
     let words = card?.translate_word?.split(",");
 
     if (words?.includes(values.name.toLowerCase().trim())) {
+      setIsImageReady(false);
       setState("success");
       setNumberCard(numberCard + 1);
 
