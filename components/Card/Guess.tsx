@@ -177,6 +177,7 @@ export default function Simple() {
                     </Box>
                   )}
                   <Image
+                    style={{ visibility: !isImageReady ? "hidden" : "visible" }}
                     maxH={230}
                     maxW={282}
                     src={cards[numberCard]?.image_reference}
