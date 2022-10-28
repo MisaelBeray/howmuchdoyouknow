@@ -1,4 +1,4 @@
-import { FormEvent, ChangeEvent, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Stack,
   FormControl,
@@ -12,6 +12,7 @@ import {
   FormErrorMessage,
   Box,
   Image,
+  Skeleton,
 } from "@chakra-ui/react";
 import axios from "axios";
 import ICard from "./Interface";
@@ -19,6 +20,7 @@ import IStatistic from "../Statistic/Interface";
 import { Field, Form, Formik } from "formik";
 import Statistic from "../Statistic";
 import useWindowSize from "../../utils/windowSize";
+import Loading from "./Loading";
 
 const api_get_all_cards = process.env.NEXT_PUBLIC_API_GET_ALL_CARDS;
 const authorization_value = process.env.NEXT_PUBLIC_API_AUTHORIZATION_VALUE;
@@ -39,6 +41,8 @@ export default function Simple() {
   );
   const [error, setError] = useState(false);
   const size = useWindowSize();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isImageReady, setIsImageReady] = useState(false);
 
   useEffect(() => {
     const getAllWords = async () => {
@@ -47,7 +51,7 @@ export default function Simple() {
           "x-hasura-admin-secret": authorization_value,
         },
       });
-
+      setIsLoading(false);
       res?.words
         .sort((a: any, b: any) => (a.id > b.id ? 1 : -1))
         .map((item: ICard) => {
@@ -133,8 +137,9 @@ export default function Simple() {
           <Input
             {...field}
             placeholder={"Your answer"}
-            focusBorderColor="lime"
-            errorBorderColor="lime"
+            isInvalid
+            focusBorderColor="#48BB78"
+            errorBorderColor="#48BB78"
           />
         );
 
@@ -143,82 +148,97 @@ export default function Simple() {
     }
   };
 
+  const color = useColorModeValue("white", "whiteAlpha.100");
+
   return (
     <>
-      <Stack
-        spacing={{ base: 8, md: 14 }}
-        py={{ base: size.width > 475 ? 20 : 12, md: 36 }}
-      >
-        <Statistic {...statistic} />
-        <Flex align={"center"} justify={"center"}>
-          <Container
-            maxW={size.width > 475 ? "xl" : "xs"}
-            bg={useColorModeValue("white", "whiteAlpha.100")}
-            boxShadow={"xl"}
-            rounded={"lg"}
-            p={6}
-          >
-            <Flex align={"center"} justify={"center"} mb={5}>
-              <Box>
-                <Image
-                  maxH={230}
-                  maxW={282}
-                  src={cards[numberCard]?.image_reference}
-                  alt={cards[numberCard]?.original_word}
-                />
-              </Box>
-            </Flex>
-
-            <Heading
-              as={"h2"}
-              fontSize={{ base: "xl", sm: "2xl" }}
-              textAlign={"center"}
-              mb={5}
+      {isLoading ? (
+        <Loading size={size} />
+      ) : (
+        <Stack
+          spacing={{ base: 8, md: 14 }}
+          py={{ base: size.width > 475 ? 20 : 12, md: 36 }}
+        >
+          <Statistic {...statistic} />
+          <Flex align={"center"} justify={"center"}>
+            <Container
+              maxW={size.width > 475 ? "xl" : "xs"}
+              bg={color}
+              boxShadow={"xl"}
+              rounded={"lg"}
+              p={6}
             >
-              {cards[numberCard]?.original_word}
-            </Heading>
+              <Flex align={"center"} justify={"center"} mb={5}>
+                <Box>
+                  {!isImageReady && (
+                    <Box px={12}>
+                      <Skeleton minW={"280px"} height="180px" />
+                    </Box>
+                  )}
+                  <Image
+                    maxH={230}
+                    maxW={282}
+                    src={cards[numberCard]?.image_reference}
+                    alt={cards[numberCard]?.original_word}
+                    onLoad={(e: any) => {
+                      setIsImageReady(true);
+                    }}
+                  />
+                </Box>
+              </Flex>
 
-            <Formik
-              initialValues={{ name: "" }}
-              onSubmit={(values, actions) => {
-                handlerAnswer(cards[numberCard], values, cards.length);
-                setTimeout(() => {
-                  setState("initial");
-                  actions.setSubmitting(false);
-                  actions.resetForm({ values: { name: "" } });
-                }, 2000);
-              }}
-            >
-              {(props) => (
-                <Form>
-                  <Field name="name" validate={validateName}>
-                    {({ field, form }: any) => (
-                      <FormControl
-                        isInvalid={form.errors.name && form.touched.name}
+              <Heading
+                as={"h2"}
+                fontSize={{ base: "xl", sm: "2xl" }}
+                textAlign={"center"}
+                mb={5}
+              >
+                {cards[numberCard]?.original_word}
+              </Heading>
+
+              <Formik
+                initialValues={{ name: "" }}
+                onSubmit={(values, actions) => {
+                  handlerAnswer(cards[numberCard], values, cards.length);
+                  setTimeout(() => {
+                    setState("initial");
+                    actions.setSubmitting(false);
+                    actions.resetForm({ values: { name: "" } });
+                  }, 2000);
+                }}
+              >
+                {(props) => (
+                  <Form>
+                    <Field name="name" validate={validateName}>
+                      {({ field, form }: any) => (
+                        <FormControl
+                          isInvalid={form.errors.name && form.touched.name}
+                        >
+                          {inputWithFeedback(field)}
+                          <FormErrorMessage>
+                            {form.errors.name}
+                          </FormErrorMessage>
+                        </FormControl>
+                      )}
+                    </Field>
+                    <Flex align={"center"} justify={"center"}>
+                      <Button
+                        mt={4}
+                        colorScheme="teal"
+                        isLoading={props.isSubmitting}
+                        type="submit"
                       >
-                        {/* <Input {...field} placeholder={"Your answer"} /> */}
-                        {inputWithFeedback(field)}
-                        <FormErrorMessage>{form.errors.name}</FormErrorMessage>
-                      </FormControl>
-                    )}
-                  </Field>
-                  <Flex align={"center"} justify={"center"}>
-                    <Button
-                      mt={4}
-                      colorScheme="teal"
-                      isLoading={props.isSubmitting}
-                      type="submit"
-                    >
-                      Send
-                    </Button>
-                  </Flex>
-                </Form>
-              )}
-            </Formik>
-            {feedback()}
-          </Container>
-        </Flex>
-      </Stack>
+                        Send
+                      </Button>
+                    </Flex>
+                  </Form>
+                )}
+              </Formik>
+              {feedback()}
+            </Container>
+          </Flex>
+        </Stack>
+      )}
     </>
   );
 }
