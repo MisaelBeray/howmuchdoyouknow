@@ -200,7 +200,7 @@ export default function Simple() {
 
               <Formik
                 initialValues={{ name: "" }}
-                onSubmit={(values, actions) => {
+                onSubmit={(values: any, actions: any) => {
                   handlerAnswer(cards[numberCard], values, cards.length);
                   setTimeout(() => {
                     setState("initial");
@@ -209,7 +209,7 @@ export default function Simple() {
                   }, 2000);
                 }}
               >
-                {(props) => (
+                {(props: any) => (
                   <Form>
                     <Field name="name" validate={validateName}>
                       {({ field, form }: any) => (
