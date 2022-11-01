@@ -13,6 +13,7 @@ import {
   Box,
   Image,
   Skeleton,
+  HStack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import ICard from "./Interface";
@@ -21,13 +22,17 @@ import { Field, Form, Formik } from "formik";
 import Statistic from "../Statistic";
 import useWindowSize from "../../utils/windowSize";
 import Loading from "./Loading";
+import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 
 const api_get_all_cards = process.env.NEXT_PUBLIC_API_GET_ALL_CARDS;
 const authorization_value = process.env.NEXT_PUBLIC_API_AUTHORIZATION_VALUE;
+const minSize = parseInt(process.env.NEXT_PUBLIC_MIN_SIZE || "475");
 
 let cardGuess: ICard = {};
 
 export default function Simple() {
+  const [beginCard, setBeginCard] = useState(true);
+  const [endCard, setEndCard] = useState(false);
   const [numberCard, setNumberCard] = useState(0);
   const [cards, setCards] = useState<ICard[]>([]);
   const [statistic, setStatistic] = useState<IStatistic>({
@@ -76,16 +81,27 @@ export default function Simple() {
   const handlerAnswer = (card: ICard, values: any, totalCards: number) => {
     let words = card?.translate_word?.split(",");
 
-    if (words?.includes(values.name.toLowerCase().trim())) {
+    if (
+      words?.some((el) => {
+        return (
+          el.toLocaleLowerCase().trim() ===
+          values.name.toLocaleLowerCase().trim()
+        );
+      })
+    ) {
       setIsImageReady(false);
       setState("success");
       setNumberCard(numberCard + 1);
-
       if (!error) {
         setStatistic({
           ...statistic,
           hits: (statistic?.hits || 0) + 1,
-          remaining: `${numberCard + 2} / ${totalCards}`,
+          remaining: `${numberCard + 1} / ${totalCards}`,
+        });
+        setStatistic({
+          ...statistic,
+          hits: (statistic?.hits || 0) + 1,
+          remaining: `${numberCard + 1} / ${totalCards}`,
         });
       }
       setError(false);
@@ -149,97 +165,160 @@ export default function Simple() {
     }
   };
 
+  const handleNext = () => {
+    if (numberCard + 1 < cards.length) {
+      setNumberCard(numberCard + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (numberCard > 0) {
+      setNumberCard(numberCard - 1);
+    }
+  };
+
   const color = useColorModeValue("white", "whiteAlpha.100");
+
+  useEffect(() => {
+    let currentCard = numberCard;
+
+    if (currentCard > 0) {
+      currentCard = currentCard + 1;
+      setBeginCard(false);
+    }
+
+    if (currentCard == 0) {
+      currentCard = 1;
+      setBeginCard(true);
+    }
+
+    if (currentCard == cards.length) {
+      setEndCard(true);
+    } else {
+      setEndCard(false);
+    }
+
+    setStatistic({
+      ...statistic,
+      remaining: `${currentCard} / ${cards.length}`,
+    });
+  }, [numberCard]);
 
   return (
     <>
       {isLoading ? (
         <Loading size={size} />
       ) : (
-        <Stack
-          spacing={{ base: 8, md: 14 }}
-          py={{ base: size.width > 475 ? 20 : 12, md: 36 }}
-        >
-          <Statistic {...statistic} />
-          <Flex align={"center"} justify={"center"}>
-            <Container
-              maxW={size.width > 475 ? "xl" : "xs"}
-              bg={color}
-              boxShadow={"xl"}
-              rounded={"lg"}
-              p={6}
-            >
-              <Flex align={"center"} justify={"center"} mb={5}>
-                <Box>
-                  {!isImageReady && (
-                    <Box px={12}>
-                      <Skeleton minW={"280px"} height="180px" />
-                    </Box>
-                  )}
-                  <Image
-                    style={{ visibility: !isImageReady ? "hidden" : "visible" }}
-                    maxH={230}
-                    maxW={282}
-                    src={cards[numberCard]?.image_reference}
-                    alt={cards[numberCard]?.original_word}
-                    onLoad={(e: any) => {
-                      setIsImageReady(true);
-                    }}
-                  />
+        <>
+          <Stack
+            spacing={{ base: 8, md: 14 }}
+            py={{ base: size.width > minSize ? 20 : 12, md: 36 }}
+          >
+            <Statistic {...statistic} />
+            <Flex align={"center"} justify={"center"}>
+              <HStack spacing="24px">
+                <Box w="50px" h="40px">
+                  <Flex align={"center"} justify={"center"}>
+                    <Button
+                      disabled={beginCard ? true : false}
+                      variant="ghost"
+                      onClick={() => handleBack()}
+                    >
+                      <ArrowLeftIcon w={8} h={8} />
+                    </Button>
+                  </Flex>
                 </Box>
-              </Flex>
-
-              <Heading
-                as={"h2"}
-                fontSize={{ base: "xl", sm: "2xl" }}
-                textAlign={"center"}
-                mb={5}
-              >
-                {cards[numberCard]?.original_word}
-              </Heading>
-
-              <Formik
-                initialValues={{ name: "" }}
-                onSubmit={(values: any, actions: any) => {
-                  handlerAnswer(cards[numberCard], values, cards.length);
-                  setTimeout(() => {
-                    setState("initial");
-                    actions.setSubmitting(false);
-                    actions.resetForm({ values: { name: "" } });
-                  }, 2000);
-                }}
-              >
-                {(props: any) => (
-                  <Form>
-                    <Field name="name" validate={validateName}>
-                      {({ field, form }: any) => (
-                        <FormControl
-                          isInvalid={form.errors.name && form.touched.name}
+                <Box
+                  w={size.width > minSize ? "320px" : "280px"}
+                  h={size.width > minSize ? "280px" : "240px"}
+                  bg={color}
+                >
+                  <Flex align={"center"} justify={"center"} pt={12}>
+                    {!isImageReady && (
+                      <Box px={12}>
+                        <Skeleton minW={"280px"} height="180px" />
+                      </Box>
+                    )}
+                    <Image
+                      style={{
+                        visibility: !isImageReady ? "hidden" : "visible",
+                      }}
+                      maxH={size.width > minSize ? 180 : 140}
+                      maxW={size.width > minSize ? 275 : 220}
+                      src={cards[numberCard]?.image_reference}
+                      alt={cards[numberCard]?.original_word}
+                      onLoad={(e: any) => {
+                        setIsImageReady(true);
+                      }}
+                    />
+                  </Flex>
+                  <Heading
+                    as={"h2"}
+                    fontSize={{ base: "xl", sm: "2xl" }}
+                    textAlign={"center"}
+                    pt={2}
+                  >
+                    {cards[numberCard]?.original_word}
+                  </Heading>
+                </Box>
+                <Box w="50px" h="40px">
+                  <Flex align={"center"} justify={"center"}>
+                    <Button
+                      disabled={endCard ? true : false}
+                      variant="ghost"
+                      onClick={() => handleNext()}
+                    >
+                      <ArrowRightIcon w={8} h={8} />
+                    </Button>
+                  </Flex>
+                </Box>
+              </HStack>
+            </Flex>
+            <Flex align={"center"} justify={"center"}>
+              <Box maxW="7xl" mx={"auto"} px={{ base: 2, sm: 12, md: 17 }}>
+                <Formik
+                  initialValues={{ name: "" }}
+                  onSubmit={(values: any, actions: any) => {
+                    handlerAnswer(cards[numberCard], values, cards.length);
+                    setTimeout(() => {
+                      setState("initial");
+                      actions.setSubmitting(false);
+                      actions.resetForm({ values: { name: "" } });
+                    }, 2000);
+                  }}
+                >
+                  {(props: any) => (
+                    <Form>
+                      <Flex align={"center"} justify={"center"}>
+                        <Field name="name" validate={validateName}>
+                          {({ field, form }: any) => (
+                            <FormControl
+                              isInvalid={form.errors.name && form.touched.name}
+                            >
+                              {inputWithFeedback(field)}
+                              <FormErrorMessage>
+                                {form.errors.name}
+                              </FormErrorMessage>
+                            </FormControl>
+                          )}
+                        </Field>
+                        <Button
+                          mx={2}
+                          colorScheme="teal"
+                          isLoading={props.isSubmitting}
+                          type="submit"
                         >
-                          {inputWithFeedback(field)}
-                          <FormErrorMessage>
-                            {form.errors.name}
-                          </FormErrorMessage>
-                        </FormControl>
-                      )}
-                    </Field>
-                    <Flex align={"center"} justify={"center"}>
-                      <Button
-                        mt={4}
-                        colorScheme="teal"
-                        isLoading={props.isSubmitting}
-                        type="submit"
-                      >
-                        Send
-                      </Button>
-                    </Flex>
-                  </Form>
-                )}
-              </Formik>
-              {feedback()}
-            </Container>
-          </Flex>
-        </Stack>
+                          Send
+                        </Button>
+                      </Flex>
+                    </Form>
+                  )}
+                </Formik>
+                {feedback()}
+              </Box>
+            </Flex>
+          </Stack>
+        </>
       )}
     </>
   );
