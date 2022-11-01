@@ -19,7 +19,7 @@ import { useToast } from "@chakra-ui/react";
 const api_set_card = process.env.NEXT_PUBLIC_API_ADD_CARD;
 const authorization_value = process.env.NEXT_PUBLIC_API_AUTHORIZATION_VALUE;
 
-export default function createCard() {
+export default function CreateCard() {
   const size = useWindowSize();
   const color = useColorModeValue("white", "whiteAlpha.100");
 
