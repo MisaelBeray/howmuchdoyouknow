@@ -216,8 +216,8 @@ export default function Simple() {
           >
             <Statistic {...statistic} />
             <Flex align={"center"} justify={"center"}>
-              <HStack spacing="24px">
-                <Box w="50px" h="40px">
+              <HStack spacing={size.width > minSize ? "24px" : "12px"}>
+                <Box w={size.width > minSize ? "50px" : "30px"} h="40px">
                   <Flex align={"center"} justify={"center"}>
                     <Button
                       disabled={beginCard ? true : false}
@@ -261,7 +261,7 @@ export default function Simple() {
                     {cards[numberCard]?.original_word}
                   </Heading>
                 </Box>
-                <Box w="50px" h="40px">
+                <Box w={size.width > minSize ? "50px" : "30px"} h="40px">
                   <Flex align={"center"} justify={"center"}>
                     <Button
                       disabled={endCard ? true : false}
