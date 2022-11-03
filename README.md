@@ -1,4 +1,14 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Live
+
+https://howmuchdoyouknow.vercel.app/
+
+## Screenshoots
+
+![image](https://user-images.githubusercontent.com/26965306/199792896-6e32469c-3be1-481f-8b4c-ec4ceedde829.png)
+
+![image](https://user-images.githubusercontent.com/26965306/199793005-d314d287-7804-459d-a7fc-c19561c14d8f.png)
+
+![image](https://user-images.githubusercontent.com/26965306/199793170-cd89f534-840f-4701-a08d-d187e2dbc3cb.png)
 
 ## Getting Started
 
